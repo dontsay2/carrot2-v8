@@ -82,6 +82,8 @@ class CarState(CarStateBase):
     self.speedLimitDistance = 0
     self.pcmCruiseGap = 0
 
+    self.cruise_buttons_alt = False # for CASPER_EV
+
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
     cp_cam = can_parsers[Bus.cam]
@@ -228,11 +230,8 @@ class CarState(CarStateBase):
     if self.CP.extFlags & HyundaiExtFlags.CRUISE_BUTTON_ALT.value:
       lfa_button = cp.vl.get("CRUISE_BUTTON_LFA", {}).get("CruiseSwLfa", 0)
       cruise_button = [Buttons.LFA_BUTTON] if lfa_button > 0 else cp.vl_all["CRUISE_BUTTON_ALT"]["CruiseSwState"]
-    elif self.CP.extFlags & HyundaiExtFlags.HAS_LFA_BUTTON.value:
-      if cp.vl.get("BCM_PO_11", {}).get("LFA_Pressed", 0):
-        cruise_button = [Buttons.LFA_BUTTON]
-      else:
-        cruise_button = cp.vl_all["CLU11"]["CF_Clu_CruiseSwState"]
+    elif self.CP.extFlags & HyundaiExtFlags.HAS_LFA_BUTTON.value and cp.vl.get("BCM_PO_11", {}).get("LFA_Pressed", 0):
+      cruise_button = [Buttons.LFA_BUTTON]
     else:
       cruise_button = cp.vl_all["CLU11"]["CF_Clu_CruiseSwState"]
     self.cruise_buttons.extend(cruise_button)
